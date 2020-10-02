@@ -1,3 +1,4 @@
 task.txt
 vendor/
 .idea/
+scripts/api_token.php
