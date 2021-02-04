@@ -1,11 +1,14 @@
 {
-    "name": "vagrant/aviakassa",
-    "require": {},
-    "autoload": {
-        "psr-4": {
-            "app\\": "src"
-        }
-    },
-    "require-dev": {
+  "name": "vagrant/aviakassa",
+  "require": {
+    "php": ">=7.4",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "app\\": "src"
     }
+  },
+  "require-dev": {
+  }
 }

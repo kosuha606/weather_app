@@ -3,34 +3,39 @@
 namespace app;
 
 use app\Interfaces\WeatherDataProviderInterface;
-use app\Interfaces\WeatherSaveStrategyInterface;
+use app\Interfaces\WeatherDtoInterface;
 
 class WeatherGrabber
 {
-    /**
-     * @var WeatherDataProviderInterface
-     */
-    private $dataProvider;
+    private WeatherDataProviderInterface $dataProvider;
 
     /**
-     * @var WeatherSaveStrategyInterface
+     * @param WeatherDataProviderInterface $dataProvider
      */
-    private $saveStrategy;
-
     public function __construct(
-        WeatherDataProviderInterface $dataProvider,
-        WeatherSaveStrategyInterface $saveStrategy
+        WeatherDataProviderInterface $dataProvider
     ) {
         $this->dataProvider = $dataProvider;
-        $this->saveStrategy = $saveStrategy;
     }
 
     /**
-     * @param string $cityName
-     * @param string $toFilePath
+     * @param int $offset
+     * @return $this
      */
-    public function fetchNewDataToFile(string $cityName, string $toFilePath): void
+    public function setHoursOffset(int $offset): self
     {
-        $this->saveStrategy->saveData($toFilePath, $this->dataProvider->grabData($cityName));
+        $this->dataProvider->setHoursOffset($offset);
+
+        return $this;
+    }
+
+    /**
+     * @param float $lat
+     * @param float $lng
+     * @return WeatherDtoInterface
+     */
+    public function grabByLatLng(float $lat, float $lng): WeatherDtoInterface
+    {
+        return $this->dataProvider->grabByLatLng($lat, $lng);
     }
 }

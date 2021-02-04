@@ -2,67 +2,80 @@
 
 namespace app\DataProviders;
 
+use app\Dto\WeatherDetailDto;
 use app\Dto\WeatherDto;
 use app\Interfaces\WeatherDataProviderInterface;
 use app\Interfaces\WeatherDtoInterface;
+use JsonException;
 
 class OpenWeatherMapDataProvider implements WeatherDataProviderInterface
 {
-    /**
-     * @var string
-     */
-    private $apiToken;
+    private string $apiToken;
+    private string $serviceUrl = 'http://api.openweathermap.org';
+    private string $lang = 'ru';
+    private string $units = 'metric';
+    private int $hoursOffset = 0;
 
     /**
-     * @var string
+     * @param string $apiToken
      */
-    private $serviceUrl;
-
-    /**
-     * @var string
-     */
-    private $lang;
-
-    /**
-     * @var string
-     */
-    private $units;
-
     public function __construct(
-        string $apiToken = '',
-        string $serviceUrl = 'http://api.openweathermap.org',
-        string $lang = 'ru',
-        string $units = 'metric'
+        string $apiToken
     ) {
         $this->apiToken = $apiToken;
-        $this->serviceUrl = $serviceUrl;
-        $this->lang = $lang;
-        $this->units = $units;
     }
 
     /**
-     * @param string $cityName
+     * @param float $lat
+     * @param float $lng
      * @return WeatherDtoInterface
+     * @throws JsonException
      */
-    public function grabData(string $cityName): WeatherDtoInterface
+    public function grabByLatLng(float $lat, float $lng): WeatherDtoInterface
     {
-        $data = json_decode(file_get_contents($this->buildUrl($cityName)), true);
+        $data = json_decode(file_get_contents($this->buildUrl($lat, $lng)), true, 512, JSON_THROW_ON_ERROR);
+        $weatherDto = new WeatherDto('no', 'no', 'no', 'no');
 
-        return new WeatherDto(
-            $cityName,
-            date('Y-m-d H:i:s', $data['dt']),
-            $data['wind']['speed'],
-            $data['wind']['deg'].'deg',
-            $data['main']['temp']
-        );
+        if (isset($data['hourly'][$this->hoursOffset - 1])) {
+            $hourlyWeatherData = $data['hourly'][$this->hoursOffset - 1];
+
+            $weatherDto
+                ->setDate(date('Y-m-d H:i:s', $hourlyWeatherData['dt']))
+                ->setWindSpeed($hourlyWeatherData['wind_speed'])
+                ->setTemperature($hourlyWeatherData['temp'])
+                ->setWindDirection($hourlyWeatherData['wind_deg']);
+
+            if (isset($hourlyWeatherData['weather'])) {
+                foreach ($hourlyWeatherData['weather'] as $weather) {
+                    $weatherDto->addWeatherDetail(new WeatherDetailDto(
+                        $weather['id'],
+                        $weather['description'],
+                        $weather['main'],
+                    ));
+                }
+            }
+        }
+
+        return $weatherDto;
     }
 
     /**
-     * @param string $cityName
+     * @param float $lat
+     * @param float $lng
      * @return string
      */
-    private function buildUrl(string $cityName): string
+    private function buildUrl(float $lat, float $lng): string
     {
-        return "{$this->serviceUrl}/data/2.5/weather?q={$cityName}&appid={$this->apiToken}&lang={$this->lang}&units={$this->units}";
+        return "{$this->serviceUrl}/data/2.5/onecall?lat={$lat}&lon={$lng}&appid={$this->apiToken}&lang={$this->lang}&units={$this->units}";
+    }
+
+    /**
+     * @param int $offset
+     * @return $this
+     */
+    public function setHoursOffset(int $offset): self
+    {
+        $this->hoursOffset = $offset;
+        return $this;
     }
 }

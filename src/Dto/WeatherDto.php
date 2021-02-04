@@ -6,33 +6,14 @@ use app\Interfaces\WeatherDtoInterface;
 
 class WeatherDto implements WeatherDtoInterface
 {
-    /**
-     * @var string
-     */
-    private $date;
-
-    /**
-     * @var string
-     */
-    private $windSpeed;
-
-    /**
-     * @var string
-     */
-    private $windDirection;
-
-    /**
-     * @var string
-     */
-    private $temperature;
-
-    /**
-     * @var string
-     */
-    private $city;
+    private string $date;
+    private string $windSpeed;
+    private string $windDirection;
+    private string $temperature;
+    /** @var WeatherDetailDto[] */
+    private array $weatherDetails;
 
     public function __construct(
-        string $city,
         string $date,
         string $windSpeed,
         string $windDirection,
@@ -42,15 +23,6 @@ class WeatherDto implements WeatherDtoInterface
         $this->windSpeed = $windSpeed;
         $this->windDirection = $windDirection;
         $this->temperature = $temperature;
-        $this->city = $city;
-    }
-
-    /**
-     * @return string
-     */
-    public function getCity(): string
-    {
-        return $this->city;
     }
 
     /**
@@ -86,16 +58,60 @@ class WeatherDto implements WeatherDtoInterface
     }
 
     /**
-     * @return array
+     * @param WeatherDetailDto $weatherDetailDto
+     * @return $this
      */
-    public function toArray(): array
+    public function addWeatherDetail(WeatherDetailDto $weatherDetailDto): self
     {
-        return [
-            'city'          => $this->city,
-            'date'          => $this->date,
-            'windSpeed'     => $this->windSpeed,
-            'windDirection' => $this->windDirection,
-            'temperature'   => $this->temperature,
-        ];
+        $this->weatherDetails[] = $weatherDetailDto;
+        return $this;
+    }
+
+    /**
+     * @return WeatherDetailDto[]
+     */
+    public function getWeatherDetails(): array
+    {
+        return $this->weatherDetails;
+    }
+
+    /**
+     * @param string $date
+     * @return $this
+     */
+    public function setDate(string $date): self
+    {
+        $this->date = $date;
+        return $this;
+    }
+
+    /**
+     * @param string $windSpeed
+     * @return $this
+     */
+    public function setWindSpeed(string $windSpeed): self
+    {
+        $this->windSpeed = $windSpeed;
+        return $this;
+    }
+
+    /**
+     * @param string $windDirection
+     * @return $this
+     */
+    public function setWindDirection(string $windDirection): self
+    {
+        $this->windDirection = $windDirection;
+        return $this;
+    }
+
+    /**
+     * @param string $temperature
+     * @return $this
+     */
+    public function setTemperature(string $temperature): self
+    {
+        $this->temperature = $temperature;
+        return $this;
     }
 }
